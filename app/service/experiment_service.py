@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import Experiment, ExperimentStatus, EventSeverity, User, UserRole
 import app.crud as crud
 
+from collections import OrderedDict
 
 async def _assert_experiment_owner_or_teacher(
     experiment: Experiment, current_user: User
@@ -149,14 +150,23 @@ async def ingest_telemetry(
             )
 
 
+
 async def export_telemetry_csv(
     db: AsyncSession, experiment: Experiment
 ) -> str:
     """FR-12: Export telemetry for an experiment as CSV string."""
     records = await crud.get_telemetry(db, experiment.id, limit=100_000)
     output = io.StringIO()
-    writer = csv.writer(output)
+    
+    # Добавляем BOM-символ для корректного чтения UTF-8 в Excel
+    output.write('\ufeff') 
+    
+    # Меняем разделитель на точку с запятой
+    writer = csv.writer(output, delimiter=";") 
+    
     writer.writerow(["id", "experiment_id", "parameter_name", "value", "unit", "recorded_at"])
+    
     for r in records:
         writer.writerow([r.id, r.experiment_id, r.parameter_name, r.value, r.unit, r.recorded_at.isoformat()])
+        
     return output.getvalue()

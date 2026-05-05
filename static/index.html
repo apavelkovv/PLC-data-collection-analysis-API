@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LabControl — Управление</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:         #F4F6FA;
+  --bg2:        #ECEEF4;
+  --white:      #FFFFFF;
+  --border:     #E2E5EE;
+  --border2:    #CDD1DE;
+  --ink:        #0F1623;
+  --ink2:       #3D4659;
+  --ink3:       #8592A8;
+  --ink4:       #B5BECA;
+  --blue:       #1A6BFF;
+  --blue-soft:  #EBF1FF;
+  --blue-mid:   #C2D4FF;
+  --green:      #0BA360;
+  --green-soft: #E6F7EF;
+  --green-mid:  #9BE3C2;
+  --amber:      #D97706;
+  --amber-soft: #FEF3E2;
+  --amber-mid:  #FCD28A;
+  --red:        #DC2626;
+  --red-soft:   #FEE9E9;
+  --mono: 'DM Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --radius: 10px;
+  --shadow-sm: 0 1px 3px rgba(15,22,35,0.06), 0 1px 2px rgba(15,22,35,0.04);
+  --shadow: 0 2px 8px rgba(15,22,35,0.08), 0 1px 3px rgba(15,22,35,0.05);
+}
+
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.hidden { display: none !important; }
+.mono { font-family: var(--mono); }
+
+/* ───── SIDEBAR ───── */
+.sidebar {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: 232px;
+  background: var(--white);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+}
+.logo-area {
+  padding: 22px 20px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-mark {
+  width: 32px; height: 32px;
+  background: var(--ink);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo-text { display: flex; flex-direction: column; }
+.logo-name { font-size: 14px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
+.logo-ver { font-family: var(--mono); font-size: 9px; color: var(--ink4); letter-spacing: 0.08em; margin-top: 1px; }
+.nav { flex: 1; padding: 14px 12px; overflow-y: auto; }
+.nav-section-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink4);
+  padding: 10px 8px 6px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink3);
+  cursor: pointer;
+  margin-bottom: 1px;
+  transition: background 0.12s, color 0.12s;
+  user-select: none;
+}
+.nav-item:hover { background: var(--bg2); color: var(--ink2); }
+.nav-item.active { background: var(--blue-soft); color: var(--blue); font-weight: 600; }
+.nav-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.7; }
+.nav-item.active .nav-icon { opacity: 1; }
+.nav-badge {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  background: var(--blue);
+  color: #fff;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+.nav-badge.red { background: var(--red); }
+.nav-divider { height: 1px; background: var(--border); margin: 8px 0; }
+.sidebar-footer {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.user-ava {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #DBEAFE, #C7D2FE);
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue);
+  flex-shrink: 0;
+}
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-role { font-family: var(--mono); font-size: 9px; color: var(--ink4); margin-top: 1px; }
+.btn-logout {
+  width: 28px; height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  color: var(--ink3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.btn-logout:hover { background: var(--red-soft); color: var(--red); border-color: #FECACA; }
+
+/* ───── MAIN ───── */
+.main {
+  margin-left: 232px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.topbar {
+  height: 54px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--ink3);
+}
+.breadcrumb span { color: var(--ink4); }
+.breadcrumb b { color: var(--ink); font-weight: 600; }
+.topbar-sep { flex: 1; }
+.tab-panel { display: block; }
+
+/* ───── CONTENT ───── */
+.content {
+  flex: 1;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ───── TAG ───── */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+.tag-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.tag-blue    { background: var(--blue-soft);  color: var(--blue);  border: 1px solid var(--blue-mid); }
+.tag-green   { background: var(--green-soft); color: var(--green); border: 1px solid var(--green-mid); }
+.tag-amber   { background: var(--amber-soft); color: var(--amber); border: 1px solid var(--amber-mid); }
+.tag-red     { background: var(--red-soft);   color: var(--red);   border: 1px solid #FECACA; }
+.tag-neutral { background: var(--bg2);        color: var(--ink3);  border: 1px solid var(--border); }
+
+/* ───── CARD ───── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.card-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--white);
+}
+.card-title { font-size: 13px; font-weight: 600; color: var(--ink); flex: 1; letter-spacing: -0.01em; }
+
+/* ───── BUTTONS ───── */
+.btn {
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  letter-spacing: -0.01em;
+  transition: opacity 0.12s;
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary { background: var(--ink); color: #fff; border-color: var(--ink); box-shadow: 0 2px 8px rgba(15,22,35,0.18); }
+.btn-primary:hover:not(:disabled) { background: #1e2a3a; }
+.btn-blue { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn-blue:hover:not(:disabled) { background: #1559e0; }
+.btn-danger { background: var(--red-soft); color: var(--red); border-color: #FECACA; }
+.btn-danger:hover:not(:disabled) { background: #fee2e2; }
+.btn-amber { background: var(--amber-soft); color: var(--amber); border-color: var(--amber-mid); }
+.btn-amber:hover:not(:disabled) { background: #fde8c4; }
+.btn-ghost { background: var(--white); color: var(--ink2); border-color: var(--border); box-shadow: var(--shadow-sm); }
+.btn-ghost:hover:not(:disabled) { background: var(--bg2); }
+.btn-sm { padding: 5px 11px; font-size: 12px; border-radius: 6px; }
+
+/* Icon button */
+.btn-icon {
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  cursor: pointer;
+  font-size: 13px;
+  display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.12s;
+}
+.btn-icon:hover { background: var(--bg2); }
+.btn-icon-danger:hover { background: var(--red-soft); border-color: #FECACA; }
+
+/* ───── TABLE ───── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table th {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink4);
+  padding: 10px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--bg2);
+  color: var(--ink2);
+  vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--bg2); }
+.actions-cell { display: flex; gap: 6px; align-items: center; }
+
+/* ───── FORM ───── */
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 6px;
+}
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg2);
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+  box-sizing: border-box;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26,107,255,0.12);
+  background: var(--white);
+}
+.form-textarea { min-height: 72px; resize: vertical; }
+.checkbox-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink2); }
+.checkbox-row input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--blue); cursor: pointer; }
+
+/* ───── MODAL ───── */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(15,22,35,0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(2px);
+}
+.modal-card {
+  background: var(--white);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 40px rgba(15,22,35,0.18);
+  width: 440px;
+  max-width: calc(100vw - 40px);
+  overflow: hidden;
+}
+.modal-header {
+  padding: 18px 22px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-title { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
+.modal-body { padding: 20px 22px; }
+.modal-footer {
+  padding: 14px 22px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  background: var(--bg2);
+}
+
+/* ───── EXPERIMENT VIEW ───── */
+.exp-header-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+.exp-header-left { flex: 1; }
+.exp-tag-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.exp-title-text { font-size: 20px; font-weight: 700; letter-spacing: -0.025em; color: var(--ink); margin-bottom: 5px; }
+.exp-meta { display: flex; align-items: center; gap: 16px; font-size: 12.5px; color: var(--ink3); flex-wrap: wrap; }
+.exp-actions { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+
+/* ───── PARAMS GRID ───── */
+.params-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1px;
+  background: var(--border);
+  border-top: 1px solid var(--border);
+}
+.param-cell {
+  background: var(--white);
+  padding: 12px 16px;
+  transition: background 0.15s;
+}
+.param-cell:hover { background: var(--bg2); }
+.param-cell-active {
+  background: var(--blue-soft) !important;
+  outline: 2px solid var(--blue-mid);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+.param-name {
+  font-family: var(--mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink4);
+  margin-bottom: 4px;
+}
+.param-value {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1.1;
+}
+.param-unit { font-family: var(--mono); font-size: 10px; color: var(--ink4); margin-left: 2px; }
+.param-trend { font-family: var(--mono); font-size: 9px; color: var(--ink4); margin-top: 3px; }
+
+/* ───── NEW TELEMETRY CHARTS STYLES ───── */
+.chart-tabs { display: flex; gap: 2px; padding: 4px; background: var(--bg2); border-radius: 8px; }
+.chart-tab { flex: 1; padding: 6px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 500; text-align: center; cursor: pointer; color: var(--ink3); font-family: var(--mono); }
+.chart-tab.active { background: var(--white); color: var(--blue); box-shadow: var(--shadow-sm); }
+.chart-wrap { padding: 16px 20px 0; }
+.chart-wrap-inner { position: relative; height: 140px; }
+.chart-foot { display: flex; justify-content: space-between; padding: 6px 20px 14px; border-top: 1px solid var(--bg2); margin-top: 8px; }
+.chart-cur { display: flex; align-items: baseline; gap: 5px; }
+.chart-cur-val { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); }
+.chart-cur-unit { font-family: var(--mono); font-size: 11px; color: var(--ink4); }
+.chart-cur-delta { font-family: var(--mono); font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 4px; }
+.delta-up { background: #FEE9E9; color: var(--red); }
+.delta-down { background: var(--green-soft); color: var(--green); }
+.delta-ok { background: var(--bg2); color: var(--ink4); }
+.chart-stats { display: flex; gap: 16px; }
+.chart-stat { display: flex; flex-direction: column; gap: 1px; align-items: flex-end; }
+.chart-stat-label { font-family: var(--mono); font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink4); }
+.chart-stat-val { font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--ink2); }
+
+/* ───── LOG ───── */
+.log-body { max-height: 300px; overflow-y: auto; }
+.log-body::-webkit-scrollbar { width: 3px; }
+.log-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.log-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 20px;
+  font-size: 12px;
+}
+.log-time {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--ink4);
+  padding-top: 1px;
+  min-width: 55px;
+  flex-shrink: 0;
+}
+.log-indicator {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+.log-indicator.blue  { background: var(--blue); }
+.log-indicator.green { background: var(--green); }
+.log-indicator.amber { background: var(--amber); }
+.log-indicator.red   { background: var(--red); }
+.log-msg { flex: 1; color: var(--ink2); line-height: 1.45; }
+.log-msg strong { color: var(--ink); font-weight: 600; }
+
+/* ───── MAIN GRID ───── */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+/* ───── SECTION HEADER ───── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+
+/* ───── TOAST ───── */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 999;
+}
+.toast {
+  padding: 11px 18px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(15,22,35,0.2);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  max-width: 320px;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast-success { background: var(--green); }
+.toast-error   { background: var(--red); }
+
+/* ───── EMPTY STATE ───── */
+.empty-state { text-align: center; padding: 60px 20px; color: var(--ink4); }
+.empty-state h3 { font-size: 16px; font-weight: 600; color: var(--ink3); margin-bottom: 8px; margin-top: 16px; }
+
+/* ───── SELECT (exp list) ───── */
+.exp-select {
+  padding: 8px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  font-family: var(--sans);
+  font-size: 13px;
+  background: var(--bg2);
+  color: var(--ink);
+  outline: none;
+  cursor: pointer;
+}
+.exp-select:focus { border-color: var(--blue); }
+
+/* ───── FILTER ROW ───── */
+.filter-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ───── STATUS LIVE ───── */
+.status-live {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--green);
+  background: var(--green-soft);
+  border: 1px solid var(--green-mid);
+  border-radius: 6px;
+  padding: 5px 11px;
+}
+.live-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: livepulse 2s infinite;
+}
+@keyframes livepulse {
+  0%,100% { box-shadow: 0 0 0 3px rgba(11,163,96,0.2); }
+  50%      { box-shadow: 0 0 0 5px rgba(11,163,96,0.1); }
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="logo-area">
+    <div class="logo-mark">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.9"/>
+        <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.5"/>
+        <rect x="2" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.5"/>
+        <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.3"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <div class="logo-name">LabControl</div>
+      <div class="logo-ver">v2.5.0</div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-section-label">Лаборатория</div>
+
+    <div class="nav-item active" data-tab="experiments">
+      <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3h10v2H3zM3 7h10v2H3zM3 11h7v2H3z" fill="currentColor"/></svg>
+      Эксперименты
+    </div>
+
+    <div class="nav-item" data-tab="stands">
+      <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Стенды (PLC)
+    </div>
+
+    <div class="nav-divider"></div>
+    <div class="nav-section-label">Управление</div>
+
+    <div class="nav-item" data-tab="users" data-role="admin">
+      <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="2.5" stroke="currentColor" stroke-width="1.3"/><circle cx="10" cy="11" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 11h5M9 5h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Пользователи
+    </div>
+
+    <div class="nav-item" data-tab="logs" data-role="teacher-admin">
+      <svg class="nav-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2Zm0 4v3M8 11v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Логи системы
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-ava" id="user-ava">??</div>
+    <div class="user-info">
+      <div class="user-name" id="user-name">Загрузка...</div>
+      <div class="user-role" id="user-role">ROLE</div>
+    </div>
+    <button class="btn-logout" id="btn-logout" title="Выйти">⏻</button>
+  </div>
+</aside>
+
+<main class="main">
+  <header class="topbar">
+    <div class="breadcrumb">
+      LabControl <span>›</span> <b id="breadcrumb-section">Эксперименты</b>
+      <span id="breadcrumb-arrow" class="hidden">›</span>
+      <b id="breadcrumb-exp" class="hidden"></b>
+    </div>
+    <div class="topbar-sep"></div>
+    <div class="status-live" id="topbar-live">
+      <span class="live-dot"></span>
+      Live · REST
+    </div>
+  </header>
+
+  <div id="tab-experiments" class="tab-panel content">
+
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+      <select id="exp-list-select" class="exp-select" style="flex:1;min-width:220px;">
+        <option value="">Выберите эксперимент...</option>
+      </select>
+      <button class="btn btn-blue" id="open-create-modal">+ Новый эксперимент</button>
+    </div>
+
+    <div id="view-empty" class="card" style="flex:1;">
+      <div class="empty-state">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style="opacity:0.18;"><rect x="8" y="8" width="48" height="48" rx="12" stroke="currentColor" stroke-width="3"/><path d="M20 32h24M32 20v24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+        <h3>Нет активного эксперимента</h3>
+        <p>Выберите из списка выше или создайте новый.</p>
+      </div>
+    </div>
+
+    <div id="view-main" class="hidden" style="display:contents;">
+
+      <div class="exp-header-card">
+        <div class="exp-header-left">
+          <div class="exp-tag-row">
+            <div id="exp-status-tag"></div>
+            <span class="tag tag-blue" id="exp-id-tag">#EXP-0</span>
+            <span class="tag tag-neutral" id="exp-stand-id">Стенд #—</span>
+          </div>
+          <div class="exp-title-text" id="exp-title">Название эксперимента</div>
+          <div class="exp-meta">
+            <span id="exp-started-at" style="color:var(--ink3);">—</span>
+            <span>Стенд: <strong id="exp-stand-name">—</strong></span>
+          </div>
+          <div style="margin-top:6px;font-size:12px;color:var(--ink3);" id="exp-description"></div>
+        </div>
+        <div class="exp-actions">
+          <button class="btn btn-primary btn-sm" id="btn-start">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M3 2.5L9.5 6 3 9.5V2.5Z" fill="currentColor"/></svg>
+            Запуск
+          </button>
+          <button class="btn btn-amber btn-sm" id="btn-pause">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="2" y="2" width="3" height="8" rx="1" fill="currentColor"/><rect x="7" y="2" width="3" height="8" rx="1" fill="currentColor"/></svg>
+            Пауза
+          </button>
+          <button class="btn btn-danger btn-sm" id="btn-stop">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><rect x="2" y="2" width="8" height="8" rx="1" fill="currentColor"/></svg>
+            Стоп
+          </button>
+          <button class="btn btn-ghost btn-sm" id="btn-export-csv">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 11L5 8 7 10 10 5 12 7" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            CSV
+          </button>
+        </div>
+      </div>
+
+      <div class="main-grid">
+
+        <div style="display:flex;flex-direction:column;gap:18px;">
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Телеметрия</div>
+              <div class="chart-tabs" style="padding:0;background:none;gap:0;">
+                <span class="chart-tab active" id="tele-unit-tab" style="padding:3px 9px;border-radius:5px;">нет данных</span>
+              </div>
+              <div class="tag tag-blue" style="margin-left:6px;font-size:8.5px;">LIVE</div>
+            </div>
+            <div class="chart-wrap">
+              <div class="chart-wrap-inner" style="height:140px;">
+                <canvas id="tele-sparkline" width="760" height="140" style="width:100%;height:100%;display:block;"></canvas>
+              </div>
+            </div>
+            <div class="chart-foot">
+              <div class="chart-cur">
+                <span class="chart-cur-val" id="tele-val">—</span>
+                <span class="chart-cur-unit" id="tele-unit">нет данных</span>
+                <span class="chart-cur-delta delta-ok" id="tele-trend">—</span>
+              </div>
+              <div class="chart-stats">
+                <div class="chart-stat"><div class="chart-stat-label">Время</div><div class="chart-stat-val" id="tele-time">—</div></div>
+                <div class="chart-stat"><div class="chart-stat-label">Мин</div><div class="chart-stat-val" id="tele-min">—</div></div>
+                <div class="chart-stat"><div class="chart-stat-label">Макс</div><div class="chart-stat-val" id="tele-max">—</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Все параметры</div>
+            </div>
+            <div class="params-grid" id="params-grid">
+              <div style="padding:20px;text-align:center;color:var(--ink4);font-size:12px;grid-column:1/-1;">Нет данных телеметрии</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Лог событий эксперимента</div>
+            </div>
+            <div class="log-body" id="exp-event-log">
+              <div style="padding:20px;text-align:center;color:var(--ink4);">Загрузка...</div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <div id="tab-stands" class="tab-panel content hidden">
+    <div class="section-header">
+      <div class="section-title">Стенды (PLC)</div>
+      <button class="btn btn-blue" id="btn-add-stand" data-role="teacher-admin">+ Добавить стенд</button>
+    </div>
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>PLC Адрес</th>
+            <th>Статус</th>
+            <th>Создан</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="stands-tbody">
+          <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--ink4);">Загрузка...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="tab-users" class="tab-panel content hidden">
+    <div class="section-header">
+      <div class="section-title">Пользователи</div>
+      <button class="btn btn-blue" id="btn-add-user">+ Зарегистрировать</button>
+    </div>
+    <div class="card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Логин</th>
+            <th>Email</th>
+            <th>Роль</th>
+            <th>Статус</th>
+            <th>Создан</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody">
+          <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--ink4);">Загрузка...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="tab-logs" class="tab-panel content hidden">
+    <div class="section-header">
+      <div class="section-title">Логи системы</div>
+      <div class="filter-row">
+        <select class="exp-select" id="log-filter-severity">
+          <option value="">Все уровни</option>
+          <option value="info">Info</option>
+          <option value="warning">Warning</option>
+          <option value="critical">Critical</option>
+          <option value="error">Error</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" id="btn-refresh-logs">↺ Обновить</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="log-body" id="global-event-log" style="max-height:600px;">
+        <div style="padding:20px;text-align:center;color:var(--ink4);">Загрузка...</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div id="modal-create" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">Новый эксперимент</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Название *</label>
+        <input type="text" id="input-exp-name" class="form-input" placeholder="Введите название">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Стенд *</label>
+        <select id="select-stand" class="form-select"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Описание</label>
+        <textarea id="input-exp-desc" class="form-textarea" placeholder="Описание (необязательно)"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" id="btn-cancel-create">Отмена</button>
+      <button class="btn btn-blue btn-sm" id="btn-confirm-create">Создать</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-stand" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title" id="stand-modal-title">Стенд</div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="stand-modal-id">
+      <div class="form-group">
+        <label class="form-label">Название *</label>
+        <input type="text" id="stand-input-name" class="form-input" placeholder="Стенд А">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Описание</label>
+        <input type="text" id="stand-input-desc" class="form-input" placeholder="Описание">
+      </div>
+      <div class="form-group">
+        <label class="form-label">PLC Host *</label>
+        <input type="text" id="stand-input-host" class="form-input" placeholder="192.168.1.100">
+      </div>
+      <div class="form-group">
+        <label class="form-label">PLC Port</label>
+        <input type="number" id="stand-input-port" class="form-input" value="502">
+      </div>
+      <div class="form-group" id="stand-active-row">
+        <label class="checkbox-row">
+          <input type="checkbox" id="stand-input-active" checked>
+          Стенд активен
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" id="btn-cancel-stand">Отмена</button>
+      <button class="btn btn-blue btn-sm" id="btn-save-stand">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-user" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">Редактировать пользователя</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="user-modal-email" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Роль</label>
+        <select id="user-modal-role" class="form-select">
+          <option value="student">Student</option>
+          <option value="teacher">Teacher</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="checkbox-row">
+          <input type="checkbox" id="user-modal-active">
+          Активен
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" id="btn-cancel-user">Отмена</button>
+      <button class="btn btn-blue btn-sm" id="btn-save-user">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-register" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title">Зарегистрировать пользователя</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Логин *</label>
+        <input type="text" id="reg-username" class="form-input" placeholder="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        <input type="email" id="reg-email" class="form-input" placeholder="user@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Пароль * (мин. 8 символов)</label>
+        <input type="password" id="reg-password" class="form-input" placeholder="••••••••">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Роль</label>
+        <select id="reg-role" class="form-select">
+          <option value="student">Student</option>
+          <option value="teacher">Teacher</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" id="btn-cancel-register">Отмена</button>
+      <button class="btn btn-blue btn-sm" id="btn-save-register">Создать</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="api.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
